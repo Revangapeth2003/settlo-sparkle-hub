@@ -152,7 +152,7 @@ const Leads = () => {
                           </div>
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <DollarSign className="w-4 h-4 text-green-500" />
-                            {lead.expectedRevenue}
+                            ₹{lead.expectedRevenue}
                           </div>
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <span className="font-medium">Portfolio:</span> {lead.portfolio}

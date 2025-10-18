@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { Zap } from "lucide-react";
 import Notifications from "./Notifications";
 
@@ -7,7 +7,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border backdrop-blur-xl bg-background/80">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="relative">
               <Zap className="w-8 h-8 text-primary animate-pulse-glow" />
               <Zap className="w-8 h-8 text-secondary absolute inset-0 animate-pulse opacity-50" />
@@ -15,7 +15,7 @@ const Navbar = () => {
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Settlo
             </span>
-          </div>
+          </Link>
           
           <div className="flex items-center gap-4">
             <div className="flex gap-2">

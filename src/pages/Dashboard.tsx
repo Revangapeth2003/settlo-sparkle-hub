@@ -51,7 +51,7 @@ const Dashboard = () => {
     },
     { 
       label: "Expected Revenue", 
-      value: `$${(totalRevenue / 1000).toFixed(0)}K`, 
+      value: `₹${(totalRevenue / 1000).toFixed(0)}K`, 
       icon: DollarSign,
       color: "text-accent",
       glow: "glow-accent"
@@ -111,7 +111,7 @@ const Dashboard = () => {
                     <h3 className="text-xl font-bold mb-2">{portfolio.name}</h3>
                     <div className="flex gap-4 text-sm text-muted-foreground mb-4">
                       <span>{portfolioLeads.length} Leads</span>
-                      <span>${(portfolioRevenue / 1000).toFixed(0)}K</span>
+                      <span>₹{(portfolioRevenue / 1000).toFixed(0)}K</span>
                     </div>
                   </div>
                   <Button 
