@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AddLeadDialog from "@/components/AddLeadDialog";
 
 export type Lead = {
@@ -173,18 +174,19 @@ const Leads = () => {
                       </div>
                     </div>
                     
-                    <div className="flex gap-2 mt-4 flex-wrap">
-                      {statusOptions.map((status) => (
-                        <Button
-                          key={status}
-                          variant={lead.status === status ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleStatusChange(lead.id, status)}
-                          className={lead.status === status ? "gradient-primary" : ""}
-                        >
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </Button>
-                      ))}
+                    <div className="mt-4">
+                      <Select value={lead.status} onValueChange={(value) => handleStatusChange(lead.id, value as Lead["status"])}>
+                        <SelectTrigger className="w-[200px] border-border bg-background/50">
+                          <SelectValue placeholder="Change status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </Card>
                 ))

@@ -140,16 +140,14 @@ const AddLeadDialog = ({ open, onOpenChange, onAddLead }: AddLeadDialogProps) =>
 
             <div className="space-y-2">
               <Label htmlFor="leadType">Lead Type *</Label>
-              <Select value={formData.leadType} onValueChange={(value) => setFormData({ ...formData, leadType: value })}>
-                <SelectTrigger className="border-border bg-background/50">
-                  <SelectValue placeholder="Select lead type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Hot">Hot</SelectItem>
-                  <SelectItem value="Warm">Warm</SelectItem>
-                  <SelectItem value="Cold">Cold</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="leadType"
+                required
+                value={formData.leadType}
+                onChange={(e) => setFormData({ ...formData, leadType: e.target.value })}
+                className="border-border bg-background/50"
+                placeholder="e.g., Hot, Warm, Cold"
+              />
             </div>
 
             <div className="space-y-2">

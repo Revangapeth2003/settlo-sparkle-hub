@@ -8,54 +8,54 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 240 10% 6%;
-    --foreground: 0 0% 98%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 8% 10%;
-    --card-foreground: 0 0% 98%;
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 8% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 271 81% 56%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 180 82% 51%;
+    --secondary: 199 89% 48%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 5% 20%;
-    --muted-foreground: 240 5% 64%;
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 326 78% 60%;
+    --accent: 25 95% 53%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 8% 20%;
-    --input: 240 8% 20%;
-    --ring: 271 81% 56%;
+    --border: 217 33% 22%;
+    --input: 217 33% 22%;
+    --ring: 217 91% 60%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Gaming-inspired gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(180 82% 51%));
-    --gradient-secondary: linear-gradient(135deg, hsl(326 78% 60%), hsl(33 94% 57%));
-    --gradient-accent: linear-gradient(135deg, hsl(180 82% 51%), hsl(271 81% 56%));
+    /* Professional business gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 48%));
+    --gradient-secondary: linear-gradient(135deg, hsl(199 89% 48%), hsl(25 95% 53%));
+    --gradient-accent: linear-gradient(135deg, hsl(217 91% 60%), hsl(220 70% 50%));
     
-    /* Glow effects */
-    --glow-primary: 0 0 20px hsl(271 81% 56% / 0.5);
-    --glow-secondary: 0 0 20px hsl(180 82% 51% / 0.5);
-    --glow-accent: 0 0 20px hsl(326 78% 60% / 0.5);
+    /* Subtle glow effects */
+    --glow-primary: 0 0 20px hsl(217 91% 60% / 0.3);
+    --glow-secondary: 0 0 20px hsl(199 89% 48% / 0.3);
+    --glow-accent: 0 0 20px hsl(25 95% 53% / 0.3);
 
-    --sidebar-background: 240 10% 6%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 271 81% 56%;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 8% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 8% 20%;
-    --sidebar-ring: 271 81% 56%;
+    --sidebar-accent: 217 33% 18%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 22%;
+    --sidebar-ring: 217 91% 60%;
   }
 }
 
@@ -66,7 +66,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: radial-gradient(ellipse at top, hsl(240 10% 10%), hsl(240 10% 6%));
+    background: radial-gradient(ellipse at top, hsl(222 47% 15%), hsl(222 47% 11%));
     min-height: 100vh;
   }
 }
@@ -111,10 +111,10 @@ All colors MUST be HSL.
 
   @keyframes pulse-glow {
     0%, 100% { 
-      box-shadow: 0 0 20px hsl(271 81% 56% / 0.3);
+      box-shadow: 0 0 20px hsl(217 91% 60% / 0.2);
     }
     50% { 
-      box-shadow: 0 0 40px hsl(271 81% 56% / 0.6), 0 0 60px hsl(180 82% 51% / 0.4);
+      box-shadow: 0 0 30px hsl(217 91% 60% / 0.4), 0 0 40px hsl(199 89% 48% / 0.3);
     }
   }
 }
