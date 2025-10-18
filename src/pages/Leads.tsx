@@ -1,61 +1,56 @@
 import { useState } from "react";
-import { Plus, Mail, Phone, Building, Calendar, DollarSign } from "lucide-react";
+import { Plus, Mail, Phone, Building, Calendar, DollarSign, Pencil, Trash2 } from "lucide-react";
+import { useLeads, type Lead } from "@/contexts/LeadsContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import AddLeadDialog from "@/components/AddLeadDialog";
-
-export type Lead = {
-  id: string;
-  name: string;
-  organization: string;
-  email: string;
-  contactNumber: string;
-  portfolio: string;
-  leadType: string;
-  leadSource: string;
-  nextFollowUp: string;
-  expectedRevenue: string;
-  leadOwner: string;
-  requirements: string;
-  status: "new" | "contacted" | "qualified" | "proposal" | "won" | "lost";
-};
+import { toast } from "@/hooks/use-toast";
 
 const Leads = () => {
-  const [leads, setLeads] = useState<Lead[]>([
-    {
-      id: "1",
-      name: "John Doe",
-      organization: "Tech Corp",
-      email: "john@techcorp.com",
-      contactNumber: "+1234567890",
-      portfolio: "Settlo Tech Solutions",
-      leadType: "Hot",
-      leadSource: "Website",
-      nextFollowUp: "2025-01-20",
-      expectedRevenue: "$50000",
-      leadOwner: "Sarah Smith",
-      requirements: "Custom software development",
-      status: "new"
-    }
-  ]);
+  const { leads, updateLeadStatus, deleteLead } = useLeads();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
 
-  const handleAddLead = (lead: Omit<Lead, "id">) => {
-    const newLead = {
-      ...lead,
-      id: Date.now().toString(),
-    };
-    setLeads([...leads, newLead]);
+  const handleStatusChange = (leadId: string, newStatus: Lead["status"]) => {
+    updateLeadStatus(leadId, newStatus);
+    toast({
+      title: "Status Updated",
+      description: "Lead status has been updated successfully.",
+    });
   };
 
-  const handleStatusChange = (leadId: string, newStatus: Lead["status"]) => {
-    setLeads(leads.map(lead => 
-      lead.id === leadId ? { ...lead, status: newStatus } : lead
-    ));
+  const handleEdit = (lead: Lead) => {
+    setEditingLead(lead);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (leadId: string) => {
+    deleteLead(leadId);
+    setDeletingLeadId(null);
+    toast({
+      title: "Lead Deleted",
+      description: "Lead has been deleted successfully.",
+    });
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingLead(null);
   };
 
   const filteredLeads = activeTab === "all" 
@@ -174,7 +169,7 @@ const Leads = () => {
                       </div>
                     </div>
                     
-                    <div className="mt-4">
+                    <div className="mt-4 flex items-center justify-between">
                       <Select value={lead.status} onValueChange={(value) => handleStatusChange(lead.id, value as Lead["status"])}>
                         <SelectTrigger className="w-[200px] border-border bg-background/50">
                           <SelectValue placeholder="Change status" />
@@ -187,6 +182,24 @@ const Leads = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEdit(lead)}
+                          className="border-primary text-primary hover:bg-primary/10"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setDeletingLeadId(lead.id)}
+                          className="border-destructive text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 ))
@@ -197,9 +210,29 @@ const Leads = () => {
 
         <AddLeadDialog 
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          onAddLead={handleAddLead}
+          onOpenChange={handleCloseDialog}
+          editingLead={editingLead}
         />
+
+        <AlertDialog open={!!deletingLeadId} onOpenChange={() => setDeletingLeadId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the lead.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deletingLeadId && handleDelete(deletingLeadId)}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

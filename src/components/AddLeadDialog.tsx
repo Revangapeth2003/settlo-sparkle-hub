@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,18 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import type { Lead } from "@/pages/Leads";
+import { useLeads, type Lead } from "@/contexts/LeadsContext";
+import { toast } from "@/hooks/use-toast";
 
 interface AddLeadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddLead: (lead: Omit<Lead, "id">) => void;
+  editingLead?: Lead | null;
 }
 
-const AddLeadDialog = ({ open, onOpenChange, onAddLead }: AddLeadDialogProps) => {
+const AddLeadDialog = ({ open, onOpenChange, editingLead }: AddLeadDialogProps) => {
+  const { addLead, updateLead } = useLeads();
+  
   const [formData, setFormData] = useState({
     name: "",
     organization: "",
@@ -35,36 +37,73 @@ const AddLeadDialog = ({ open, onOpenChange, onAddLead }: AddLeadDialogProps) =>
   });
   const [nextFollowUp, setNextFollowUp] = useState<Date>();
 
+  useEffect(() => {
+    if (editingLead) {
+      setFormData({
+        name: editingLead.name,
+        organization: editingLead.organization,
+        email: editingLead.email,
+        contactNumber: editingLead.contactNumber,
+        portfolio: editingLead.portfolio,
+        leadType: editingLead.leadType,
+        leadSource: editingLead.leadSource,
+        expectedRevenue: editingLead.expectedRevenue,
+        leadOwner: editingLead.leadOwner,
+        requirements: editingLead.requirements,
+        status: editingLead.status
+      });
+      if (editingLead.nextFollowUp) {
+        setNextFollowUp(parseISO(editingLead.nextFollowUp));
+      }
+    } else {
+      setFormData({
+        name: "",
+        organization: "",
+        email: "",
+        contactNumber: "",
+        portfolio: "",
+        leadType: "",
+        leadSource: "",
+        expectedRevenue: "",
+        leadOwner: "",
+        requirements: "",
+        status: "new"
+      });
+      setNextFollowUp(undefined);
+    }
+  }, [editingLead, open]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!nextFollowUp) {
-      toast.error("Please select a follow-up date");
+      toast({
+        title: "Error",
+        description: "Please select a follow-up date",
+        variant: "destructive"
+      });
       return;
     }
 
-    onAddLead({
+    const leadData = {
       ...formData,
       nextFollowUp: format(nextFollowUp, "yyyy-MM-dd"),
-    });
+    };
 
-    toast.success("Lead added successfully!");
+    if (editingLead) {
+      updateLead(editingLead.id, leadData);
+      toast({
+        title: "Lead Updated",
+        description: "Lead has been updated successfully.",
+      });
+    } else {
+      addLead(leadData);
+      toast({
+        title: "Lead Added",
+        description: "New lead has been added successfully.",
+      });
+    }
     
-    // Reset form
-    setFormData({
-      name: "",
-      organization: "",
-      email: "",
-      contactNumber: "",
-      portfolio: "",
-      leadType: "",
-      leadSource: "",
-      expectedRevenue: "",
-      leadOwner: "",
-      requirements: "",
-      status: "new"
-    });
-    setNextFollowUp(undefined);
     onOpenChange(false);
   };
 
@@ -73,7 +112,7 @@ const AddLeadDialog = ({ open, onOpenChange, onAddLead }: AddLeadDialogProps) =>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur border-2 border-primary/20">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Add New Lead
+            {editingLead ? "Edit Lead" : "Add New Lead"}
           </DialogTitle>
         </DialogHeader>
         
@@ -234,7 +273,7 @@ const AddLeadDialog = ({ open, onOpenChange, onAddLead }: AddLeadDialogProps) =>
               Cancel
             </Button>
             <Button type="submit" className="flex-1 gradient-primary hover:opacity-90 transition-opacity font-semibold">
-              Add Lead
+              {editingLead ? "Update Lead" : "Add Lead"}
             </Button>
           </div>
         </form>

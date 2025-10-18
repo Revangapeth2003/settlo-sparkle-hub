@@ -2,49 +2,56 @@ import { TrendingUp, Users, DollarSign, Target, Sparkles, Rocket } from "lucide-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useLeads } from "@/contexts/LeadsContext";
 
 const portfolios = [
   { 
     name: "Settlo Academy", 
     icon: Sparkles,
     gradient: "from-primary to-secondary",
-    stats: { leads: 45, revenue: "$125K" }
   },
   { 
     name: "Settlo Tech Solutions", 
     icon: Rocket,
     gradient: "from-secondary to-accent",
-    stats: { leads: 32, revenue: "$89K" }
   },
   { 
     name: "Settlo HR Solutions", 
     icon: Target,
     gradient: "from-accent to-primary",
-    stats: { leads: 28, revenue: "$67K" }
   },
 ];
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { leads } = useLeads();
+
+  const totalRevenue = leads.reduce((sum, lead) => {
+    const revenue = parseFloat(lead.expectedRevenue.replace(/[^0-9.-]+/g, "")) || 0;
+    return sum + revenue;
+  }, 0);
+
+  const wonLeads = leads.filter(lead => lead.status === "won").length;
+  const conversionRate = leads.length > 0 ? ((wonLeads / leads.length) * 100).toFixed(1) : "0.0";
 
   const stats = [
     { 
       label: "Total Leads", 
-      value: "105", 
+      value: leads.length.toString(), 
       icon: Users,
       color: "text-primary",
       glow: "glow-primary"
     },
     { 
       label: "Conversion Rate", 
-      value: "24.5%", 
+      value: `${conversionRate}%`, 
       icon: TrendingUp,
       color: "text-secondary",
       glow: "glow-secondary"
     },
     { 
       label: "Expected Revenue", 
-      value: "$281K", 
+      value: `$${(totalRevenue / 1000).toFixed(0)}K`, 
       icon: DollarSign,
       color: "text-accent",
       glow: "glow-accent"
@@ -84,30 +91,38 @@ const Dashboard = () => {
             Our Portfolios
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {portfolios.map((portfolio, index) => (
-              <Card 
-                key={portfolio.name}
-                className="p-6 border-2 border-border hover:border-primary transition-all group bg-card/50 backdrop-blur animate-slide-in"
-                style={{ animationDelay: `${index * 0.15}s` }}
-              >
-                <div className="mb-4">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${portfolio.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform glow-primary`}>
-                    <portfolio.icon className="w-8 h-8 text-white animate-float" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">{portfolio.name}</h3>
-                  <div className="flex gap-4 text-sm text-muted-foreground mb-4">
-                    <span>{portfolio.stats.leads} Leads</span>
-                    <span>{portfolio.stats.revenue}</span>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => navigate('/leads')}
-                  className="w-full gradient-primary hover:opacity-90 transition-opacity font-semibold"
+            {portfolios.map((portfolio, index) => {
+              const portfolioLeads = leads.filter(lead => lead.portfolio === portfolio.name);
+              const portfolioRevenue = portfolioLeads.reduce((sum, lead) => {
+                const revenue = parseFloat(lead.expectedRevenue.replace(/[^0-9.-]+/g, "")) || 0;
+                return sum + revenue;
+              }, 0);
+
+              return (
+                <Card 
+                  key={portfolio.name}
+                  className="p-6 border-2 border-border hover:border-primary transition-all group bg-card/50 backdrop-blur animate-slide-in"
+                  style={{ animationDelay: `${index * 0.15}s` }}
                 >
-                  View Leads
-                </Button>
-              </Card>
-            ))}
+                  <div className="mb-4">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${portfolio.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform glow-primary`}>
+                      <portfolio.icon className="w-8 h-8 text-white animate-float" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">{portfolio.name}</h3>
+                    <div className="flex gap-4 text-sm text-muted-foreground mb-4">
+                      <span>{portfolioLeads.length} Leads</span>
+                      <span>${(portfolioRevenue / 1000).toFixed(0)}K</span>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => navigate('/leads')}
+                    className="w-full gradient-primary hover:opacity-90 transition-opacity font-semibold"
+                  >
+                    View Leads
+                  </Button>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>

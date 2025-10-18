@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { Zap } from "lucide-react";
+import Notifications from "./Notifications";
 
 const Navbar = () => {
   return (
@@ -16,32 +17,35 @@ const Navbar = () => {
             </span>
           </div>
           
-          <div className="flex gap-2">
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                `px-6 py-2 rounded-lg font-medium transition-all ${
-                  isActive
-                    ? "gradient-primary text-white shadow-lg glow-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`
-              }
-            >
-              Dashboard
-            </NavLink>
-            <NavLink
-              to="/leads"
-              className={({ isActive }) =>
-                `px-6 py-2 rounded-lg font-medium transition-all ${
-                  isActive
-                    ? "gradient-primary text-white shadow-lg glow-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`
-              }
-            >
-              Leads
-            </NavLink>
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2">
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  `px-6 py-2 rounded-lg font-medium transition-all ${
+                    isActive
+                      ? "gradient-primary text-white shadow-lg glow-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`
+                }
+              >
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/leads"
+                className={({ isActive }) =>
+                  `px-6 py-2 rounded-lg font-medium transition-all ${
+                    isActive
+                      ? "gradient-primary text-white shadow-lg glow-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`
+                }
+              >
+                Leads
+              </NavLink>
+            </div>
+            <Notifications />
           </div>
         </div>
       </div>
