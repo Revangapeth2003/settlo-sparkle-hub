@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export type Lead = {
   id: string;
@@ -26,8 +26,14 @@ type LeadsContextType = {
 
 const LeadsContext = createContext<LeadsContextType | undefined>(undefined);
 
-export const LeadsProvider = ({ children }: { children: ReactNode }) => {
-  const [leads, setLeads] = useState<Lead[]>([
+const STORAGE_KEY = "settlo-leads";
+
+const getInitialLeads = (): Lead[] => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  return [
     {
       id: "1",
       name: "John Doe",
@@ -43,7 +49,15 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       requirements: "Custom software development",
       status: "new"
     }
-  ]);
+  ];
+};
+
+export const LeadsProvider = ({ children }: { children: ReactNode }) => {
+  const [leads, setLeads] = useState<Lead[]>(getInitialLeads);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+  }, [leads]);
 
   const addLead = (lead: Omit<Lead, "id">) => {
     const newLead = {

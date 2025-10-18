@@ -13,8 +13,14 @@ const Notifications = () => {
   const { leads } = useLeads();
 
   const upcomingFollowUps = leads.filter(lead => {
-    const followUpDate = parseISO(lead.nextFollowUp);
-    return isToday(followUpDate) || isTomorrow(followUpDate) || (isPast(followUpDate) && lead.status !== "won" && lead.status !== "lost");
+    try {
+      const followUpDate = parseISO(lead.nextFollowUp);
+      return (isToday(followUpDate) || isTomorrow(followUpDate) || (isPast(followUpDate) && !isToday(followUpDate))) && 
+             lead.status !== "won" && 
+             lead.status !== "lost";
+    } catch (error) {
+      return false;
+    }
   });
 
   return (
