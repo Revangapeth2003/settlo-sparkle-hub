@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export type Lead = {
   id: string;
@@ -22,69 +24,179 @@ type LeadsContextType = {
   updateLead: (id: string, lead: Omit<Lead, "id">) => void;
   deleteLead: (id: string) => void;
   updateLeadStatus: (id: string, status: Lead["status"]) => void;
+  loading: boolean;
 };
 
 const LeadsContext = createContext<LeadsContextType | undefined>(undefined);
 
-const STORAGE_KEY = "settlo-leads";
-
-const getInitialLeads = (): Lead[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    return JSON.parse(stored);
-  }
-  return [
-    {
-      id: "1",
-      name: "John Doe",
-      organization: "Tech Corp",
-      email: "john@techcorp.com",
-      contactNumber: "+1234567890",
-      portfolio: "Settlo Tech Solutions",
-      leadType: "Hot",
-      leadSource: "Website",
-      nextFollowUp: "2025-01-20",
-      expectedRevenue: "50000",
-      leadOwner: "Sarah Smith",
-      requirements: "Custom software development",
-      status: "new"
-    }
-  ];
-};
-
 export const LeadsProvider = ({ children }: { children: ReactNode }) => {
-  const [leads, setLeads] = useState<Lead[]>(getInitialLeads);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
-  }, [leads]);
+    fetchLeads();
 
-  const addLead = (lead: Omit<Lead, "id">) => {
-    const newLead = {
-      ...lead,
-      id: Date.now().toString(),
+    const channel = supabase
+      .channel('leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads'
+        },
+        () => {
+          fetchLeads();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    setLeads([...leads, newLead]);
+  }, []);
+
+  const fetchLeads = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setLeads([]);
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching leads:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch leads",
+        variant: "destructive"
+      });
+    } else {
+      const formattedLeads = data.map(lead => ({
+        id: lead.id,
+        name: lead.name,
+        organization: lead.organization,
+        email: lead.email,
+        contactNumber: lead.contact_number,
+        portfolio: lead.portfolio,
+        leadType: lead.lead_type,
+        leadSource: lead.lead_source,
+        nextFollowUp: lead.next_follow_up,
+        expectedRevenue: lead.expected_revenue,
+        leadOwner: lead.lead_owner,
+        requirements: lead.requirements,
+        status: lead.status as Lead["status"]
+      }));
+      setLeads(formattedLeads);
+    }
+    setLoading(false);
   };
 
-  const updateLead = (id: string, updatedLead: Omit<Lead, "id">) => {
-    setLeads(leads.map(lead => 
-      lead.id === id ? { ...updatedLead, id } : lead
-    ));
+  const addLead = async (lead: Omit<Lead, "id">) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add leads",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const { error } = await supabase.from('leads').insert({
+      user_id: session.user.id,
+      name: lead.name,
+      organization: lead.organization,
+      email: lead.email,
+      contact_number: lead.contactNumber,
+      portfolio: lead.portfolio,
+      lead_type: lead.leadType,
+      lead_source: lead.leadSource,
+      next_follow_up: lead.nextFollowUp,
+      expected_revenue: lead.expectedRevenue,
+      lead_owner: lead.leadOwner,
+      requirements: lead.requirements,
+      status: lead.status
+    });
+
+    if (error) {
+      console.error('Error adding lead:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add lead",
+        variant: "destructive"
+      });
+    }
   };
 
-  const deleteLead = (id: string) => {
-    setLeads(leads.filter(lead => lead.id !== id));
+  const updateLead = async (id: string, updatedLead: Omit<Lead, "id">) => {
+    const { error } = await supabase
+      .from('leads')
+      .update({
+        name: updatedLead.name,
+        organization: updatedLead.organization,
+        email: updatedLead.email,
+        contact_number: updatedLead.contactNumber,
+        portfolio: updatedLead.portfolio,
+        lead_type: updatedLead.leadType,
+        lead_source: updatedLead.leadSource,
+        next_follow_up: updatedLead.nextFollowUp,
+        expected_revenue: updatedLead.expectedRevenue,
+        lead_owner: updatedLead.leadOwner,
+        requirements: updatedLead.requirements,
+        status: updatedLead.status
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating lead:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update lead",
+        variant: "destructive"
+      });
+    }
   };
 
-  const updateLeadStatus = (id: string, status: Lead["status"]) => {
-    setLeads(leads.map(lead => 
-      lead.id === id ? { ...lead, status } : lead
-    ));
+  const deleteLead = async (id: string) => {
+    const { error } = await supabase
+      .from('leads')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting lead:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete lead",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateLeadStatus = async (id: string, status: Lead["status"]) => {
+    const { error } = await supabase
+      .from('leads')
+      .update({ status })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
-    <LeadsContext.Provider value={{ leads, addLead, updateLead, deleteLead, updateLeadStatus }}>
+    <LeadsContext.Provider value={{ leads, addLead, updateLead, deleteLead, updateLeadStatus, loading }}>
       {children}
     </LeadsContext.Provider>
   );

@@ -59,27 +59,27 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-24 pb-12">
-      <div className="container mx-auto px-6">
-        <div className="mb-12 text-center">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-pulse-glow">
+    <div className="min-h-screen pt-20 md:pt-24 pb-12 px-4 md:px-6">
+      <div className="container mx-auto">
+        <div className="mb-8 md:mb-12 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-pulse-glow">
             Dashboard Overview
           </h1>
-          <p className="text-muted-foreground text-lg">Track your leads and performance across all portfolios</p>
+          <p className="text-muted-foreground text-sm md:text-lg">Track your leads and performance across all portfolios</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
           {stats.map((stat, index) => (
             <Card 
               key={stat.label}
-              className={`p-6 border-2 hover:scale-105 transition-transform bg-card/50 backdrop-blur ${stat.glow} animate-slide-in`}
+              className={`p-4 md:p-6 border-2 hover:scale-105 transition-transform bg-card/50 backdrop-blur ${stat.glow} animate-slide-in`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <stat.icon className={`w-12 h-12 ${stat.color} animate-float`} style={{ animationDelay: `${index * 0.2}s` }} />
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <stat.icon className={`w-8 h-8 md:w-12 md:h-12 ${stat.color} animate-float`} style={{ animationDelay: `${index * 0.2}s` }} />
                 <div className="text-right">
-                  <p className="text-3xl font-bold">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-2xl md:text-3xl font-bold">{stat.value}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
             </Card>
@@ -87,10 +87,10 @@ const Dashboard = () => {
         </div>
 
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Our Portfolios
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {portfolios.map((portfolio, index) => {
               const portfolioLeads = leads.filter(lead => lead.portfolio === portfolio.name);
               const portfolioRevenue = portfolioLeads.reduce((sum, lead) => {
@@ -101,22 +101,22 @@ const Dashboard = () => {
               return (
                 <Card 
                   key={portfolio.name}
-                  className="p-6 border-2 border-border hover:border-primary transition-all group bg-card/50 backdrop-blur animate-slide-in"
+                  className="p-4 md:p-6 border-2 border-border hover:border-primary transition-all group bg-card/50 backdrop-blur animate-slide-in"
                   style={{ animationDelay: `${index * 0.15}s` }}
                 >
                   <div className="mb-4">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${portfolio.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform glow-primary`}>
-                      <portfolio.icon className="w-8 h-8 text-white animate-float" />
+                    <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${portfolio.gradient} flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform glow-primary`}>
+                      <portfolio.icon className="w-6 h-6 md:w-8 md:h-8 text-white animate-float" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2">{portfolio.name}</h3>
-                    <div className="flex gap-4 text-sm text-muted-foreground mb-4">
+                    <h3 className="text-lg md:text-xl font-bold mb-2">{portfolio.name}</h3>
+                    <div className="flex gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                       <span>{portfolioLeads.length} Leads</span>
                       <span>₹{(portfolioRevenue / 1000).toFixed(0)}K</span>
                     </div>
                   </div>
                   <Button 
                     onClick={() => navigate('/leads')}
-                    className="w-full gradient-primary hover:opacity-90 transition-opacity font-semibold"
+                    className="w-full gradient-primary hover:opacity-90 transition-opacity font-semibold text-sm md:text-base"
                   >
                     View Leads
                   </Button>
