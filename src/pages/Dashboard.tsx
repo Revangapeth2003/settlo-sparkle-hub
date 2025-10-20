@@ -24,7 +24,7 @@ const portfolios = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { leads } = useLeads();
+  const { leads, loading } = useLeads();
 
   const totalRevenue = leads.reduce((sum, lead) => {
     const revenue = parseFloat(lead.expectedRevenue.replace(/[^0-9.-]+/g, "")) || 0;
@@ -57,6 +57,17 @@ const Dashboard = () => {
       glow: "glow-accent"
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-20 md:pt-24 pb-12 px-4 md:px-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-20 md:pt-24 pb-12 px-4 md:px-6">
