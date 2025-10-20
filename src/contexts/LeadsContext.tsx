@@ -131,6 +131,8 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         description: "Failed to add lead",
         variant: "destructive"
       });
+    } else {
+      await fetchLeads();
     }
   };
 
@@ -160,6 +162,8 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         description: "Failed to update lead",
         variant: "destructive"
       });
+    } else {
+      await fetchLeads();
     }
   };
 
@@ -176,6 +180,8 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         description: "Failed to delete lead",
         variant: "destructive"
       });
+    } else {
+      await fetchLeads();
     }
   };
 
@@ -192,6 +198,8 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         description: "Failed to update status",
         variant: "destructive"
       });
+    } else {
+      await fetchLeads();
     }
   };
 
