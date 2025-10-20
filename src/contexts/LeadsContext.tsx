@@ -24,6 +24,7 @@ type LeadsContextType = {
   updateLead: (id: string, lead: Omit<Lead, "id">) => void;
   deleteLead: (id: string) => void;
   updateLeadStatus: (id: string, status: Lead["status"]) => void;
+  refreshLeads: () => Promise<void>;
   loading: boolean;
 };
 
@@ -204,7 +205,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <LeadsContext.Provider value={{ leads, addLead, updateLead, deleteLead, updateLeadStatus, loading }}>
+    <LeadsContext.Provider value={{ leads, addLead, updateLead, deleteLead, updateLeadStatus, refreshLeads: fetchLeads, loading }}>
       {children}
     </LeadsContext.Provider>
   );

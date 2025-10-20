@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Mail, Phone, Building, Calendar, DollarSign, Pencil, Trash2, Clock } from "lucide-react";
+import { Plus, Mail, Phone, Building, Calendar, DollarSign, Pencil, Trash2, Clock, RefreshCw } from "lucide-react";
 import { useLeads, type Lead } from "@/contexts/LeadsContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,12 @@ import { toast } from "@/hooks/use-toast";
 import { parseISO, isPast, isToday, differenceInDays } from "date-fns";
 
 const Leads = () => {
-  const { leads, updateLeadStatus, deleteLead } = useLeads();
+  const { leads, updateLeadStatus, deleteLead, refreshLeads, loading } = useLeads();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleStatusChange = (leadId: string, newStatus: Lead["status"]) => {
     updateLeadStatus(leadId, newStatus);
@@ -52,6 +53,16 @@ const Leads = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingLead(null);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshLeads();
+    setIsRefreshing(false);
+    toast({
+      title: "Refreshed",
+      description: "Leads have been refreshed successfully.",
+    });
   };
 
   const filteredLeads = activeTab === "all" 
@@ -99,14 +110,26 @@ const Leads = () => {
             </h1>
             <p className="text-muted-foreground text-sm md:text-base">Manage and track all your leads in one place</p>
           </div>
-          <Button 
-            onClick={() => setIsDialogOpen(true)}
-            className="gradient-primary hover:opacity-90 transition-opacity font-semibold gap-2 text-sm md:text-base"
-            size="lg"
-          >
-            <Plus className="w-4 h-4 md:w-5 md:h-5" />
-            Add Lead
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleRefresh}
+              variant="outline"
+              size="lg"
+              disabled={isRefreshing}
+              className="gap-2 text-sm md:text-base"
+            >
+              <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button 
+              onClick={() => setIsDialogOpen(true)}
+              className="gradient-primary hover:opacity-90 transition-opacity font-semibold gap-2 text-sm md:text-base"
+              size="lg"
+            >
+              <Plus className="w-4 h-4 md:w-5 md:h-5" />
+              Add Lead
+            </Button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
