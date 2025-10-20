@@ -40,22 +40,32 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LeadsProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Navbar />
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </LeadsProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <LeadsProvider>
+                <Dashboard />
+              </LeadsProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="/leads" element={
+            <ProtectedRoute>
+              <LeadsProvider>
+                <Leads />
+              </LeadsProvider>
+            </ProtectedRoute>
+          } />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
