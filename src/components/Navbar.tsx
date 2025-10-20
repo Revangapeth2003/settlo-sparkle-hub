@@ -5,10 +5,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import Notifications from "./Notifications";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,6 +39,7 @@ const Navbar = () => {
       title: "Signed out",
       description: "You have been signed out successfully",
     });
+    setShowLogoutDialog(false);
     navigate("/auth");
   };
 
@@ -79,7 +91,7 @@ const Navbar = () => {
             <Button
               variant="outline"
               size="icon"
-              onClick={handleSignOut}
+              onClick={() => setShowLogoutDialog(true)}
               className="border-destructive text-destructive hover:bg-destructive/10 h-8 w-8 md:h-10 md:w-10"
             >
               <LogOut className="w-3 h-3 md:w-4 md:h-4" />
@@ -87,6 +99,23 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be signed out of your account and redirected to the login page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </nav>
   );
 };
