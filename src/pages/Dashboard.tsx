@@ -122,7 +122,7 @@ const Dashboard = () => {
                     <h3 className="text-lg md:text-xl font-bold mb-2">{portfolio.name}</h3>
                     <div className="flex gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                       <span>{portfolioLeads.length} Leads</span>
-                      <span>₹{(portfolioRevenue / 1000).toFixed(0)}K</span>
+                      <span>₹{portfolioRevenue.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                   <Button 
