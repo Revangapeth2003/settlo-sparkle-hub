@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLeads } from "@/contexts/LeadsContext";
+import { format } from "date-fns";
 
 interface FollowUpDialogProps {
   open: boolean;
@@ -15,21 +17,33 @@ interface FollowUpDialogProps {
 
 const FollowUpDialog = ({ open, onOpenChange, leadId, leadName, nextDayNumber }: FollowUpDialogProps) => {
   const [notes, setNotes] = useState("");
+  const [updatedBy, setUpdatedBy] = useState("");
+  const [followUpDate, setFollowUpDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [workStatus, setWorkStatus] = useState("");
+  const [nextStep, setNextStep] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addFollowUp } = useLeads();
 
   const handleSubmit = async () => {
-    if (!notes.trim()) return;
+    if (!notes.trim() || !updatedBy.trim()) return;
     
     setIsSubmitting(true);
-    await addFollowUp(leadId, nextDayNumber, notes);
+    await addFollowUp(leadId, nextDayNumber, notes, updatedBy, followUpDate, workStatus, nextStep);
     setIsSubmitting(false);
     setNotes("");
+    setUpdatedBy("");
+    setFollowUpDate(format(new Date(), "yyyy-MM-dd"));
+    setWorkStatus("");
+    setNextStep("");
     onOpenChange(false);
   };
 
   const handleClose = () => {
     setNotes("");
+    setUpdatedBy("");
+    setFollowUpDate(format(new Date(), "yyyy-MM-dd"));
+    setWorkStatus("");
+    setNextStep("");
     onOpenChange(false);
   };
 
@@ -51,7 +65,49 @@ const FollowUpDialog = ({ open, onOpenChange, leadId, leadName, nextDayNumber }:
               placeholder="Enter what was discussed, next steps, concerns, etc..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={6}
+              rows={4}
+              className="resize-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="updatedBy">Updated By</Label>
+            <Input
+              id="updatedBy"
+              placeholder="Enter your name"
+              value={updatedBy}
+              onChange={(e) => setUpdatedBy(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="followUpDate">Date</Label>
+            <Input
+              id="followUpDate"
+              type="date"
+              value={followUpDate}
+              onChange={(e) => setFollowUpDate(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="workStatus">Work Status</Label>
+            <Input
+              id="workStatus"
+              placeholder="e.g., In Progress, Pending, Completed"
+              value={workStatus}
+              onChange={(e) => setWorkStatus(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="nextStep">Next Step</Label>
+            <Textarea
+              id="nextStep"
+              placeholder="Enter the next action items..."
+              value={nextStep}
+              onChange={(e) => setNextStep(e.target.value)}
+              rows={3}
               className="resize-none"
             />
           </div>
@@ -63,7 +119,7 @@ const FollowUpDialog = ({ open, onOpenChange, leadId, leadName, nextDayNumber }:
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={!notes.trim() || isSubmitting}
+            disabled={!notes.trim() || !updatedBy.trim() || isSubmitting}
             className="gradient-primary"
           >
             {isSubmitting ? "Adding..." : "Add Follow-Up"}

@@ -8,6 +8,10 @@ export type FollowUp = {
   day_number: number;
   notes: string | null;
   created_at: string;
+  updated_by: string | null;
+  follow_up_date: string;
+  work_status: string | null;
+  next_step: string | null;
 };
 
 export type Lead = {
@@ -35,7 +39,8 @@ type LeadsContextType = {
   updateLeadStatus: (id: string, status: Lead["status"]) => void;
   refreshLeads: () => Promise<void>;
   loading: boolean;
-  addFollowUp: (leadId: string, dayNumber: number, notes: string) => Promise<void>;
+  addFollowUp: (leadId: string, dayNumber: number, notes: string, updatedBy: string, followUpDate: string, workStatus: string, nextStep: string) => Promise<void>;
+  deleteFollowUp: (followUpId: string) => Promise<void>;
   getLeadFollowUps: (leadId: string) => FollowUp[];
 };
 
@@ -259,7 +264,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const addFollowUp = async (leadId: string, dayNumber: number, notes: string) => {
+  const addFollowUp = async (leadId: string, dayNumber: number, notes: string, updatedBy: string, followUpDate: string, workStatus: string, nextStep: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       toast({
@@ -274,7 +279,11 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       lead_id: leadId,
       user_id: session.user.id,
       day_number: dayNumber,
-      notes: notes
+      notes: notes,
+      updated_by: updatedBy,
+      follow_up_date: followUpDate,
+      work_status: workStatus,
+      next_step: nextStep
     });
 
     if (error) {
@@ -293,6 +302,28 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteFollowUp = async (followUpId: string) => {
+    const { error } = await supabase
+      .from('follow_ups')
+      .delete()
+      .eq('id', followUpId);
+
+    if (error) {
+      console.error('Error deleting follow-up:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete follow-up",
+        variant: "destructive"
+      });
+    } else {
+      await fetchAllFollowUps();
+      toast({
+        title: "Success",
+        description: "Follow-up deleted successfully",
+      });
+    }
+  };
+
   const getLeadFollowUps = (leadId: string): FollowUp[] => {
     return followUpsMap[leadId] || [];
   };
@@ -307,6 +338,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       refreshLeads: fetchLeads, 
       loading,
       addFollowUp,
+      deleteFollowUp,
       getLeadFollowUps
     }}>
       {children}

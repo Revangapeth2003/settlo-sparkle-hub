@@ -18,29 +18,41 @@ export type Database = {
         Row: {
           created_at: string
           day_number: number
+          follow_up_date: string
           id: string
           lead_id: string
+          next_step: string | null
           notes: string | null
           updated_at: string
+          updated_by: string | null
           user_id: string
+          work_status: string | null
         }
         Insert: {
           created_at?: string
           day_number: number
+          follow_up_date?: string
           id?: string
           lead_id: string
+          next_step?: string | null
           notes?: string | null
           updated_at?: string
+          updated_by?: string | null
           user_id: string
+          work_status?: string | null
         }
         Update: {
           created_at?: string
           day_number?: number
+          follow_up_date?: string
           id?: string
           lead_id?: string
+          next_step?: string | null
           notes?: string | null
           updated_at?: string
+          updated_by?: string | null
           user_id?: string
+          work_status?: string | null
         }
         Relationships: [
           {
