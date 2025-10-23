@@ -2,6 +2,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+export type FollowUp = {
+  id: string;
+  lead_id: string;
+  day_number: number;
+  notes: string | null;
+  created_at: string;
+};
+
 export type Lead = {
   id: string;
   name: string;
@@ -16,6 +24,7 @@ export type Lead = {
   leadOwner: string;
   requirements: string;
   status: "new" | "contacted" | "qualified" | "proposal" | "won" | "lost";
+  followUps?: FollowUp[];
 };
 
 type LeadsContextType = {
@@ -26,6 +35,8 @@ type LeadsContextType = {
   updateLeadStatus: (id: string, status: Lead["status"]) => void;
   refreshLeads: () => Promise<void>;
   loading: boolean;
+  addFollowUp: (leadId: string, dayNumber: number, notes: string) => Promise<void>;
+  getLeadFollowUps: (leadId: string) => FollowUp[];
 };
 
 const LeadsContext = createContext<LeadsContextType | undefined>(undefined);
@@ -33,11 +44,13 @@ const LeadsContext = createContext<LeadsContextType | undefined>(undefined);
 export const LeadsProvider = ({ children }: { children: ReactNode }) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [followUpsMap, setFollowUpsMap] = useState<Record<string, FollowUp[]>>({});
 
   useEffect(() => {
     fetchLeads();
+    fetchAllFollowUps();
 
-    const channel = supabase
+    const leadsChannel = supabase
       .channel('leads-changes')
       .on(
         'postgres_changes',
@@ -52,8 +65,24 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       )
       .subscribe();
 
+    const followUpsChannel = supabase
+      .channel('follow-ups-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follow_ups'
+        },
+        () => {
+          fetchAllFollowUps();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(leadsChannel);
+      supabase.removeChannel(followUpsChannel);
     };
   }, []);
 
@@ -204,8 +233,82 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchAllFollowUps = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setFollowUpsMap({});
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('follow_ups')
+      .select('*')
+      .order('day_number', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching follow-ups:', error);
+    } else {
+      const grouped = data.reduce((acc, followUp) => {
+        if (!acc[followUp.lead_id]) {
+          acc[followUp.lead_id] = [];
+        }
+        acc[followUp.lead_id].push(followUp);
+        return acc;
+      }, {} as Record<string, FollowUp[]>);
+      setFollowUpsMap(grouped);
+    }
+  };
+
+  const addFollowUp = async (leadId: string, dayNumber: number, notes: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add follow-ups",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const { error } = await supabase.from('follow_ups').insert({
+      lead_id: leadId,
+      user_id: session.user.id,
+      day_number: dayNumber,
+      notes: notes
+    });
+
+    if (error) {
+      console.error('Error adding follow-up:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add follow-up",
+        variant: "destructive"
+      });
+    } else {
+      await fetchAllFollowUps();
+      toast({
+        title: "Success",
+        description: `Day ${dayNumber} follow-up added successfully`,
+      });
+    }
+  };
+
+  const getLeadFollowUps = (leadId: string): FollowUp[] => {
+    return followUpsMap[leadId] || [];
+  };
+
   return (
-    <LeadsContext.Provider value={{ leads, addLead, updateLead, deleteLead, updateLeadStatus, refreshLeads: fetchLeads, loading }}>
+    <LeadsContext.Provider value={{ 
+      leads, 
+      addLead, 
+      updateLead, 
+      deleteLead, 
+      updateLeadStatus, 
+      refreshLeads: fetchLeads, 
+      loading,
+      addFollowUp,
+      getLeadFollowUps
+    }}>
       {children}
     </LeadsContext.Provider>
   );

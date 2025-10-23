@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Mail, Phone, Building, Calendar, DollarSign, Pencil, Trash2, Clock, RefreshCw } from "lucide-react";
+import { Plus, Mail, Phone, Building, Calendar, DollarSign, Pencil, Trash2, Clock, RefreshCw, MessageSquare, History } from "lucide-react";
 import { useLeads, type Lead } from "@/contexts/LeadsContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import AddLeadDialog from "@/components/AddLeadDialog";
+import FollowUpDialog from "@/components/FollowUpDialog";
+import FollowUpHistory from "@/components/FollowUpHistory";
 import { toast } from "@/hooks/use-toast";
 import { parseISO, isPast, isToday, differenceInDays } from "date-fns";
 
 const Leads = () => {
-  const { leads, updateLeadStatus, deleteLead, refreshLeads, loading } = useLeads();
+  const { leads, updateLeadStatus, deleteLead, refreshLeads, loading, getLeadFollowUps } = useLeads();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [selectedLeadForFollowUp, setSelectedLeadForFollowUp] = useState<{ id: string; name: string; nextDay: number } | null>(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<string | null>(null);
 
   const handleStatusChange = (leadId: string, newStatus: Lead["status"]) => {
     updateLeadStatus(leadId, newStatus);
@@ -63,6 +76,20 @@ const Leads = () => {
       title: "Refreshed",
       description: "Leads have been refreshed successfully.",
     });
+  };
+
+  const handleAddFollowUp = (leadId: string, leadName: string) => {
+    const followUps = getLeadFollowUps(leadId);
+    const nextDay = followUps.length > 0 
+      ? Math.max(...followUps.map(f => f.day_number)) + 1 
+      : 1;
+    setSelectedLeadForFollowUp({ id: leadId, name: leadName, nextDay });
+    setFollowUpDialogOpen(true);
+  };
+
+  const handleViewHistory = (leadId: string) => {
+    setSelectedLeadForHistory(leadId);
+    setHistoryDialogOpen(true);
   };
 
   const filteredLeads = activeTab === "all" 
@@ -168,6 +195,11 @@ const Leads = () => {
               ) : (
                 filteredLeads.map((lead) => {
                   const dueStatus = getDueStatus(lead.nextFollowUp);
+                  const followUps = getLeadFollowUps(lead.id);
+                  const currentDay = followUps.length > 0 
+                    ? Math.max(...followUps.map(f => f.day_number)) 
+                    : 0;
+                  const nextDay = currentDay + 1;
                   
                   return (
                     <Card key={lead.id} className="p-4 md:p-6 border-2 border-border hover:border-primary transition-all bg-card/50 backdrop-blur group">
@@ -182,6 +214,12 @@ const Leads = () => {
                               <Badge variant="outline" className="border-primary text-primary text-xs md:text-sm">
                                 {lead.leadType}
                               </Badge>
+                              {currentDay > 0 && (
+                                <Badge variant="secondary" className="gap-1 text-xs md:text-sm bg-gradient-to-r from-primary/20 to-secondary/20">
+                                  <MessageSquare className="w-3 h-3" />
+                                  Day {currentDay}
+                                </Badge>
+                              )}
                               {dueStatus && (
                                 <Badge variant={dueStatus.variant} className="gap-1 text-xs md:text-sm">
                                   <Clock className="w-3 h-3" />
@@ -226,36 +264,58 @@ const Leads = () => {
                           </div>
                         </div>
                         
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t">
-                          <Select value={lead.status} onValueChange={(value) => handleStatusChange(lead.id, value as Lead["status"])}>
-                            <SelectTrigger className="w-full sm:w-[200px] border-border bg-background/50">
-                              <SelectValue placeholder="Change status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {statusOptions.map((status) => (
-                                <SelectItem key={status} value={status}>
-                                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <div className="flex gap-2 justify-end">
+                        <div className="flex flex-col gap-3 pt-3 border-t">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleEdit(lead)}
-                              className="border-primary text-primary hover:bg-primary/10"
+                              onClick={() => handleAddFollowUp(lead.id, lead.name)}
+                              className="gradient-primary hover:opacity-90 transition-opacity gap-2 flex-1"
                             >
-                              <Pencil className="w-4 h-4" />
+                              <MessageSquare className="w-4 h-4" />
+                              Add Day {nextDay} Follow-Up
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => setDeletingLeadId(lead.id)}
-                              className="border-destructive text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            {followUps.length > 0 && (
+                              <Button
+                                onClick={() => handleViewHistory(lead.id)}
+                                variant="outline"
+                                className="gap-2 flex-1 sm:flex-none"
+                              >
+                                <History className="w-4 h-4" />
+                                View History ({followUps.length})
+                              </Button>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                            <Select value={lead.status} onValueChange={(value) => handleStatusChange(lead.id, value as Lead["status"])}>
+                              <SelectTrigger className="w-full sm:w-[200px] border-border bg-background/50">
+                                <SelectValue placeholder="Change status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {statusOptions.map((status) => (
+                                  <SelectItem key={status} value={status}>
+                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleEdit(lead)}
+                                className="border-primary text-primary hover:bg-primary/10"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setDeletingLeadId(lead.id)}
+                                className="border-destructive text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -272,6 +332,30 @@ const Leads = () => {
           onOpenChange={handleCloseDialog}
           editingLead={editingLead}
         />
+
+        {selectedLeadForFollowUp && (
+          <FollowUpDialog
+            open={followUpDialogOpen}
+            onOpenChange={setFollowUpDialogOpen}
+            leadId={selectedLeadForFollowUp.id}
+            leadName={selectedLeadForFollowUp.name}
+            nextDayNumber={selectedLeadForFollowUp.nextDay}
+          />
+        )}
+
+        <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Follow-Up History</DialogTitle>
+              <DialogDescription>
+                View all follow-up interactions for this lead
+              </DialogDescription>
+            </DialogHeader>
+            {selectedLeadForHistory && (
+              <FollowUpHistory followUps={getLeadFollowUps(selectedLeadForHistory)} />
+            )}
+          </DialogContent>
+        </Dialog>
 
         <AlertDialog open={!!deletingLeadId} onOpenChange={() => setDeletingLeadId(null)}>
           <AlertDialogContent>
