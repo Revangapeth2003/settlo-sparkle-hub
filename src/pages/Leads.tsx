@@ -352,7 +352,10 @@ const Leads = () => {
               </DialogDescription>
             </DialogHeader>
             {selectedLeadForHistory && (
-              <FollowUpHistory followUps={getLeadFollowUps(selectedLeadForHistory)} />
+              <FollowUpHistory 
+                followUps={getLeadFollowUps(selectedLeadForHistory)} 
+                leadName={leads.find(l => l.id === selectedLeadForHistory)?.name || ""}
+              />
             )}
           </DialogContent>
         </Dialog>

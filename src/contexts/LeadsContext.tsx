@@ -40,6 +40,7 @@ type LeadsContextType = {
   refreshLeads: () => Promise<void>;
   loading: boolean;
   addFollowUp: (leadId: string, dayNumber: number, notes: string, updatedBy: string, followUpDate: string, workStatus: string, nextStep: string) => Promise<void>;
+  updateFollowUp: (followUpId: string, dayNumber: number, notes: string, updatedBy: string, followUpDate: string, workStatus: string, nextStep: string) => Promise<void>;
   deleteFollowUp: (followUpId: string) => Promise<void>;
   getLeadFollowUps: (leadId: string) => FollowUp[];
 };
@@ -302,6 +303,35 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateFollowUp = async (followUpId: string, dayNumber: number, notes: string, updatedBy: string, followUpDate: string, workStatus: string, nextStep: string) => {
+    const { error } = await supabase
+      .from('follow_ups')
+      .update({
+        day_number: dayNumber,
+        notes: notes,
+        updated_by: updatedBy,
+        follow_up_date: followUpDate,
+        work_status: workStatus,
+        next_step: nextStep
+      })
+      .eq('id', followUpId);
+
+    if (error) {
+      console.error('Error updating follow-up:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update follow-up",
+        variant: "destructive"
+      });
+    } else {
+      await fetchAllFollowUps();
+      toast({
+        title: "Success",
+        description: "Follow-up updated successfully",
+      });
+    }
+  };
+
   const deleteFollowUp = async (followUpId: string) => {
     const { error } = await supabase
       .from('follow_ups')
@@ -338,6 +368,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       refreshLeads: fetchLeads, 
       loading,
       addFollowUp,
+      updateFollowUp,
       deleteFollowUp,
       getLeadFollowUps
     }}>

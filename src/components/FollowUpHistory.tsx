@@ -2,7 +2,7 @@ import { FollowUp } from "@/contexts/LeadsContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Calendar } from "lucide-react";
+import { Trash2, Calendar, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { useLeads } from "@/contexts/LeadsContext";
 import {
@@ -16,15 +16,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import EditFollowUpDialog from "./EditFollowUpDialog";
 
 interface FollowUpHistoryProps {
   followUps: FollowUp[];
+  leadName: string;
 }
 
-const FollowUpHistory = ({ followUps }: FollowUpHistoryProps) => {
+const FollowUpHistory = ({ followUps, leadName }: FollowUpHistoryProps) => {
   const { deleteFollowUp } = useLeads();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedFollowUpId, setSelectedFollowUpId] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null);
+
+  const handleEditClick = (followUp: FollowUp) => {
+    setSelectedFollowUp(followUp);
+    setEditDialogOpen(true);
+  };
 
   const handleDeleteClick = (followUpId: string) => {
     setSelectedFollowUpId(followUpId);
@@ -62,14 +71,24 @@ const FollowUpHistory = ({ followUps }: FollowUpHistoryProps) => {
                   {format(new Date(followUp.created_at), "MMM dd, yyyy 'at' hh:mm a")}
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDeleteClick(followUp.id)}
-                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleEditClick(followUp)}
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteClick(followUp.id)}
+                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -115,6 +134,13 @@ const FollowUpHistory = ({ followUps }: FollowUpHistoryProps) => {
           </Card>
         ))}
       </div>
+
+      <EditFollowUpDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        followUp={selectedFollowUp}
+        leadName={leadName}
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
